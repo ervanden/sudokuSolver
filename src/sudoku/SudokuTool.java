@@ -72,6 +72,7 @@ public class SudokuTool {
             }
             System.out.println("solve : " + solve);
             System.out.println("file  : " + sdkFileName);
+            System.out.println("generate : " + generate);
         } catch (Exception e) {
             usage();
         }
