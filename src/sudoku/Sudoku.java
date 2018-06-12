@@ -41,6 +41,16 @@ public class Sudoku {
         return sdk[r][k] == value;
     }
 
+    void reset() {
+        int r, k;
+        for (r = 1; r < 10; r++) {
+            for (k = 1; k < 10; k++) {
+                sdk[r][k] = 0;
+            }
+        }
+    }
+
+
     boolean inblock(int r, int k, int value) {
         /*return 1 if the value is found in the same block as (r,k) */
         int br, bk, ir, ik;

@@ -15,21 +15,8 @@ class RandomOnce {
         }
         Collections.shuffle(l);
         index=0;
-
-        /*
-        System.out.println(" created array list of size " + l.size());
-        for (int i = 1; i <= size; i++) {
-            System.out.print(l.get(i - 1));
-            System.out.print(" ");
-        }
-        System.out.println(" ");
-        */
     }
 
-    void reShuffle(){
-        Collections.shuffle(l);
-        index=0;
-    }
     int getNext() {
         index++;
         return l.get(index - 1);
@@ -43,16 +30,17 @@ public class SudokuTool {
     private static void usage() {
         System.out.println("Usage");
         System.out.println("  sudokuTool solve=true|false file=\"C:\\...\\sudoku.txt\"");
+        System.out.println("  sudokuTool generate");
         System.exit(-1);
     }
 
 
     public static void main(String[] args) {
 
-        // args must be name=value
         String sdkFileName = "";
         boolean solve = true;
         boolean generate = false;
+        int initialEntries = 26;
 
         try {
             for (int arg = 1; arg <= args.length; arg++) {
@@ -66,13 +54,17 @@ public class SudokuTool {
                     sdkFileName = s[1];
                 } else if (s[0].equals("generate")) {
                     generate = true;
+                } else if (s[0].equals("entries")) {
+                    initialEntries = Integer.parseInt(s[1]);
                 } else {
                     System.out.println("Unknown argument : " + args[arg - 1]);
                 }
             }
-            System.out.println("solve : " + solve);
-            System.out.println("file  : " + sdkFileName);
+            System.out.println("solve    : " + solve);
+            System.out.println("file     : " + sdkFileName);
             System.out.println("generate : " + generate);
+            System.out.println("entries  : " + initialEntries);
+
         } catch (Exception e) {
             usage();
         }
@@ -82,9 +74,10 @@ public class SudokuTool {
             sdkIn.readFromFile(sdkFileName);
             sdkIn.print();
 
-            SudokuSolver sudokuSolver = new SudokuSolver(sdkIn); // the solver works on a copy
-            int nrhints=sudokuSolver.hints(1);
-            System.out.println("--- "+nrhints+" hints");
+            SudokuSolver sudokuSolver = new SudokuSolver(sdkIn);
+            Sudoku sdkHints=sudokuSolver.hints(1);
+            int nrHints=81-sdkHints.count_entries(0);
+            System.out.println("--- "+nrHints+" hints");
 
             if (solve) {
                 SudokuResult result = sudokuSolver.solve(1);
@@ -98,19 +91,19 @@ public class SudokuTool {
 
             // take a known complete sudoku
 
-            Sudoku sdk;
+            Sudoku sdk = new Sudoku();
             Sudoku solvedSdk = SudokuTemplate.create();
 
-            int complete=0;
-            int incomplete=0;
+            int count=0;
+            boolean end=false;
+            int minHints=Integer.MAX_VALUE;
+            while ((!end)){
 
-            boolean found=false;
-            while ((!found)){//&&(incomplete<10000)) {
                 // copy a limited nr of entries into an empty sudoku
 
-                sdk = new Sudoku();
+                sdk.reset();
                 RandomOnce randomOnce = new RandomOnce(81);
-                for (int i = 1; i <= 24; i++) {
+                for (int i = 1; i <= initialEntries; i++) {
                     int n = randomOnce.getNext();
                     int r = (n - 1) / 9 + 1;
                     int k = n - 9 * (r - 1);
@@ -122,16 +115,24 @@ public class SudokuTool {
                 SudokuSolver sudokuSolver = new SudokuSolver(sdk);
                 SudokuResult result = sudokuSolver.solve(0);
 
-                if (result==SudokuResult.INCOMPLETE) {
-                    incomplete++;
-                   // System.out.println("--- " + incomplete);
-                } else  {
-                    SudokuSolver sudokuSolver2 = new SudokuSolver(sdk); // the solver works on a copy
-                    int nrhints=sudokuSolver2.hints(0);
-                    System.out.println("--- "+nrhints+" hints");
-                    sdk.print();
-                    //sudokuSolver.solution().print();
-                    //found=true;
+                count++;
+                if (count%5000 ==0) System.out.print("*");
+                if (count%500000==0) end=true;
+
+                if (result==SudokuResult.COMPLETE) {
+                    // count the number of initial unique entries (corresponds to the difficulty)
+                    SudokuSolver sudokuSolver2 = new SudokuSolver(sdk);
+                    Sudoku sdkHints=sudokuSolver2.hints(0);
+                    int nrHints=81-sdkHints.count_entries(0);
+                    if (nrHints<minHints) {
+                        System.out.println();
+                        count=0;
+                        System.out.println("--- " + nrHints + " hints");
+                        sdkHints.print();
+                        sdk.print();
+                        minHints=nrHints;
+                    }
+
                 }
 
             }

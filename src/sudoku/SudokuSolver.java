@@ -268,15 +268,14 @@ public class SudokuSolver {
 
     }
 
-    int hints(int debug) {
-        //Sudoku sdkHints=new Sudoku(sdk);
+    Sudoku hints(int debug) {
+        Sudoku sdkHints=new Sudoku();
         int nrtotal = 0;
-        nrtotal += m_row(debug,null);
-        nrtotal += m_col( debug,null);
-        nrtotal += m_block(debug,null);
-        nrtotal += m_entry(debug,null);
-        return nrtotal;
-        //sdkHints.print();
+        nrtotal += m_row(debug,sdkHints);
+        nrtotal += m_col( debug,sdkHints);
+        nrtotal += m_block(debug,sdkHints);
+        nrtotal += m_entry(debug,sdkHints);
+        return sdkHints;
     }
 
 
